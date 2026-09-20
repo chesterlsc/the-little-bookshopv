@@ -38,28 +38,6 @@ page.on("pageerror", (e) => pageErrors.push(String(e)));
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 check("home renders", (await page.textContent("body")).includes("Build your little shelf"));
 
-/* ── the fold's shelf picker ── */
-await page.waitForTimeout(2600); // the entry splash owns the screen until it finishes
-// all three shots stay mounted and cross-fade, so read whichever is opaque
-const shownPhoto = () => page.evaluate(() => {
-  const img = [...document.querySelectorAll(".pop-card img")].find((i) => Number(getComputedStyle(i).opacity) > 0.9);
-  return img ? decodeURIComponent(img.getAttribute("src")) : null;
-});
-check("all three photographs are kept ready, so changing shape cannot flash",
-  (await page.locator(".pop-card img").count()) === 3
-  && (await page.evaluate(() => [...document.querySelectorAll(".pop-card img")].every((i) => i.complete && i.naturalWidth > 0))));
-const firstShot = await shownPhoto();
-await page.getByRole("radio", { name: "Scalloped" }).click();
-await page.waitForTimeout(700);
-const secondShot = await shownPhoto();
-check("picking a shape shows that shelf's own photograph", firstShot !== secondShot && /shelf-mains/.test(secondShot ?? ""));
-check("the picture says which colour it is showing", (await page.textContent("figure")).includes("shown in Blush Pink"));
-await page.getByRole("button", { name: /Build my shelf/ }).click();
-await page.waitForURL(/\/build/, { timeout: 15000 });
-const seeded = await page.evaluate(() => JSON.parse(localStorage.getItem("tlb-builder-v1") || "{}"));
-check("next carries the shelf into the builder, at the colour step",
-  seeded.shelfSlug === "mini-scalloped-bookshelf" && seeded.step === 1);
-
 /* ── the Style step: the chosen colour, photographed ── */
 // seeded here rather than reached through the fold, so it does not hang on the hero
 await page.evaluate(() => localStorage.setItem("tlb-builder-v1", JSON.stringify({ shelfSlug: "mini-arched-bookshelf", step: 1 })));
@@ -293,42 +271,6 @@ check("old payment gateway routes are gone", gone.status === 404);
   check("cookie bar dismisses", (await pp.locator('aside[aria-label="Cookies"]').count()) === 0);
   check("popup scenario has no page errors", perr.length === 0, perr.join(" | "));
   await fresh.close();
-}
-
-/* ── the fold on a desktop: all three shelves, the picked one names the button ── */
-{
-  const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  await desk.addInitScript(() => {
-    localStorage.setItem("tlb-welcome-v1", JSON.stringify({ status: "dismissed", at: "smoke" }));
-    localStorage.setItem("tlb-cookies-v1", JSON.stringify({ at: "smoke" }));
-  });
-  const dp = await desk.newPage();
-  const derr = [];
-  dp.on("pageerror", (e) => derr.push(String(e)));
-  await dp.goto(BASE + "/", { waitUntil: "networkidle" });
-  await dp.waitForTimeout(2600);
-  check("desktop shows all three shelves side by side",
-    (await dp.locator(".pick-card").count()) === 3
-    && (await dp.locator(".pick-card img").evaluateAll((imgs) =>
-      imgs.every((i) => i.complete && i.naturalWidth > 0 && i.getBoundingClientRect().width > 150))));
-  await dp.getByRole("radio", { name: /Scalloped/ }).click();
-  const cta = dp.getByRole("button", { name: /Build my Scalloped shelf/ });
-  check("the picked shelf is marked and names the button",
-    (await dp.locator('.pick-card[aria-checked="true"]').textContent()).includes("Scalloped") && (await cta.count()) === 1);
-  check("the question and its button fit one desktop screen",
-    (await cta.evaluate((b) => b.getBoundingClientRect().bottom)) <= 900);
-  // the inside of a 1366x768 laptop's browser window
-  await dp.setViewportSize({ width: 1366, height: 657 });
-  await dp.waitForTimeout(400);
-  check("and one short laptop screen",
-    (await cta.evaluate((b) => b.getBoundingClientRect().bottom + 6)) <= 657);
-  await cta.click();
-  await dp.waitForURL(/\/build/, { timeout: 15000 });
-  const seededDesk = await dp.evaluate(() => JSON.parse(localStorage.getItem("tlb-builder-v1") || "{}"));
-  check("the desktop button carries the shelf into the builder",
-    seededDesk.shelfSlug === "mini-scalloped-bookshelf" && seededDesk.step === 1);
-  check("desktop fold has no page errors", derr.length === 0, derr.join(" | "));
-  await desk.close();
 }
 
 check("no page errors during run", pageErrors.length === 0, pageErrors.join(" | "));

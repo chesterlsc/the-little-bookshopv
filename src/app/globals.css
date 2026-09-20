@@ -148,6 +148,7 @@
   .sketch-path, .sketch-once { animation: none; stroke-dashoffset: 0; }
   .fade-swap { animation-duration: 0.01ms; }
   .pop-card { animation: none; }
+  .cue-bob { animation: none; }
   .soft-in { animation: none; }
   .animate-drift, .animate-drift-slow { animation: none; }
   .splash { display: none; }
@@ -602,6 +603,24 @@ a, button {
   min-height: calc(100svh - 96px);
 }
 
+/* the drawn scroll cue at the foot of the fold */
+@keyframes cue-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+.cue-bob {
+  animation: cue-bob 2.4s ease-in-out infinite;
+}
+.hero-window { min-height: 10rem; }
+/* short phones: the cue and polaroid would only crowd the shallower photo —
+   drop them, keep the cue's nav clearance, let the arch go shallow */
+@media (max-width: 1023px) and (max-height: 700px) {
+  .hero-cue { display: none; }
+  .hero-polaroid { display: none; }
+  .hero-fold { padding-bottom: 88px; }
+  .hero-window { min-height: 6rem; }
+}
+
 /* The picker's photograph swap: the new file fades in over the old one and
    replaces it once decoded, so changing colour never shows an empty frame. */
 @keyframes fade-swap {
@@ -631,17 +650,6 @@ a, button {
   to   { opacity: 1; transform: none; }
 }
 .pop-card { animation: pop-card 0.52s cubic-bezier(0.22, 0.9, 0.3, 1.1) both; }
-
-/* On a phone the photograph is shown whole rather than cropped to the screen,
-   so the fold is allowed to be taller than the viewport and scroll: a picture
-   of the thing being bought is worth more than fitting the chrome exactly. The
-   floating nav still gets its clearance, the same one .pb-nav gives the page. */
-@media (max-width: 1023px) {
-  .hero-fold {
-    min-height: 0;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
-  }
-}
 
 /* ─── The fold on a desktop: three shelves side by side ────────────────────
    Every photograph is 3:4 and shown whole. Its height is what the viewport has

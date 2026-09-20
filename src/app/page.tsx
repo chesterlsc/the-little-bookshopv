@@ -12,12 +12,11 @@ import {
   Sparkle,
   SprigDivider,
 } from "@/components/illustrations";
-import { ShelfPicker } from "@/components/shelf-picker";
 import { ThemeShelfDemo } from "@/components/theme-shelf-demo";
 import { ProductCard } from "@/components/product-card";
 import { CATEGORIES, getProduct, type Category } from "@/lib/catalog";
 import { FAQ } from "@/content/site";
-import { IconArrowRight } from "@/components/icons";
+import { IconArrowRight, IconChevronDown } from "@/components/icons";
 
 const FEATURED = [
   "mini-scalloped-bookshelf",
@@ -30,7 +29,51 @@ const FEATURED = [
   "mini-ladder",
 ];
 
-/** The maker's note, now told once, just under the fold. */
+/** The one ambient touch: a soft folk landscape the little shelf sits in front of.
+ *  Closed, tapering shapes only — nothing here ever shows a hard cut edge. */
+function HeroWindow() {
+  return (
+    <svg
+      viewBox="0 0 400 170"
+      preserveAspectRatio="none"
+      aria-hidden
+      role="presentation"
+      className="pointer-events-none absolute bottom-[-13%] left-[-23%] -z-10 hidden h-[44%] w-[146%] lg:block"
+    >
+      <circle cx="366" cy="74" r="40" fill="var(--color-sun-200)" opacity="0.6" />
+      <path
+        d="M20 122 C 74 66 152 82 216 94 C 272 104 334 98 386 122 C 320 133 84 133 20 122 Z"
+        fill="var(--color-sky-200)"
+        opacity="0.9"
+      />
+      <g fill="var(--color-sage-400)" stroke="var(--color-sage-600)" strokeWidth="1.6" strokeLinejoin="round">
+        <path d="M348 110 c0-14 7.5-22 7.5-22 s7.5 8 7.5 22 Z" />
+        <path d="M368 114 c0-10 5.5-16 5.5-16 s5.5 6 5.5 16 Z" />
+        <path d="M36 112 c0-12 6.5-19 6.5-19 s6.5 7 6.5 19 Z" />
+      </g>
+      <path
+        d="M4 148 C 64 100 132 124 202 116 C 276 108 338 126 396 148 C 318 160 80 160 4 148 Z"
+        fill="var(--color-sage-200)"
+      />
+      <path
+        d="M4 148 C 64 100 132 124 202 116 C 276 108 338 126 396 148"
+        pathLength={300}
+        className="sketch-once"
+        style={{ animationDelay: "900ms" }}
+        fill="none"
+        stroke="var(--color-sage-600)"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      <circle cx="372" cy="34" r="4" fill="var(--color-gold-400)" opacity="0.6" className="animate-drift" style={{ transformBox: "fill-box", transformOrigin: "center" }} />
+      <circle cx="348" cy="56" r="2.6" fill="var(--color-blush-300)" opacity="0.75" className="animate-drift-slow" style={{ transformBox: "fill-box", transformOrigin: "center", animationDelay: "1.6s" }} />
+      <circle cx="26" cy="46" r="3" fill="var(--color-gold-400)" opacity="0.45" className="animate-drift-slow" style={{ transformBox: "fill-box", transformOrigin: "center", animationDelay: "0.8s" }} />
+    </svg>
+  );
+}
+
+/** The maker's story — inline in the desktop hero, a pinned note below the mobile fold. */
 function HeroStory() {
   return (
     <>
@@ -51,6 +94,7 @@ function HeroStory() {
   );
 }
 
+/* one pen-stroke per promise; each `d` is a single path so it draws as one gesture */
 const HERO_MARKS = {
   hand: {
     ink: "M10 31.5 V25.6 C6.4 24 4.8 20.8 4.8 17.8 V14.4 a1.9 1.9 0 0 1 3.8 0 V18 M8.6 17.6 V8.4 a1.9 1.9 0 0 1 3.8 0 V17 M12.4 17 V6.8 a1.9 1.9 0 0 1 3.8 0 V17 M16.2 17.4 V8.6 a1.9 1.9 0 0 1 3.8 0 v10 C20 25.8 16.6 31.5 10 31.5",
@@ -102,20 +146,124 @@ function HeroMark({ kind, delay = 0 }: { kind: keyof typeof HERO_MARKS; delay?: 
 export default function HomePage() {
   return (
     <div className="pb-nav">
-      {/* ─── Hero ─── announcement bar + header + this fold = exactly one viewport.
-           The fold is the first question rather than a picture of the answer:
-           pick a shelf, see that shelf, carry it into the builder. */}
+      {/* ─── Hero ─── announcement bar + header + this fold = exactly one viewport */}
       <Section tint="paper" className="relative overflow-hidden">
         <div className="hero-fold">
-          <div className="animate-fade-up flex min-h-0 flex-1 flex-col pt-3 sm:pt-5 lg:pt-6">
-            <ShelfPicker />
+          <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] items-center gap-5 pt-4 sm:pt-8 lg:grid-cols-[1.04fr_0.96fr] lg:grid-rows-1 lg:gap-14">
+          {/* ── copy ── */}
+          <div className="animate-fade-up text-center lg:text-left">
+            <p className="eyebrow inline-flex items-center gap-2 rounded-full border-[1.5px] border-dashed border-taupe-300 bg-cream-50/70 py-1.5 pl-2.5 pr-3.5">
+              <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 shrink-0" aria-hidden role="presentation">
+                <FolkFlower x={7} y={7} r={4.2} />
+              </svg>
+              Miniatures for book lovers
+            </p>
+
+            <h1 className="hero-h1 mt-3 text-balance font-display font-bold text-ink-900 lg:mt-4">
+              Build a little shelf for the{" "}
+              <span className="hero-accent">
+                stories you love.
+                <svg viewBox="0 0 200 16" preserveAspectRatio="none" className="hero-accent-line" aria-hidden role="presentation">
+                  <path
+                    d="M4 8.5 C 34 3.5 66 12.5 100 7.5 S 168 3.5 196 9"
+                    pathLength={300}
+                    className="sketch-once"
+                    style={{ animationDelay: "520ms" }}
+                    fill="none"
+                    stroke="var(--color-sage-600)"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M9 12.8 C 42 8.2 72 16.4 108 11.4 S 170 8.6 192 13.2"
+                    pathLength={300}
+                    className="sketch-once"
+                    style={{ animationDelay: "740ms" }}
+                    fill="none"
+                    stroke="var(--color-rose-400)"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <svg viewBox="0 0 34 26" className="hero-accent-sprig soft-in" style={{ animationDelay: "1050ms" }} aria-hidden role="presentation">
+                  <Leaf x={2} y={16} s={6} angle={-28} />
+                  <FolkFlower x={24} y={9} r={5} />
+                  <Sparkle x={31} y={22} s={3} />
+                </svg>
+              </span>
+            </h1>
+
+            <p className="story-line mx-auto mt-3 max-w-[34ch] text-pretty text-[1.15rem] leading-relaxed text-ink-600 lg:hidden">
+              Your books. Your shelf. Your little library.
+            </p>
+            <div className="mx-auto mt-4 hidden max-w-[46ch] space-y-3 text-pretty lg:mx-0 lg:block">
+              <HeroStory />
+            </div>
+
+            <div className="mt-5 flex flex-col items-stretch gap-3 sm:mt-7 sm:flex-row sm:items-center sm:justify-center lg:justify-start">
+              <ButtonLink href="/build" className="btn-lg group">
+                Build your little shelf
+                <IconArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </ButtonLink>
+              <ButtonLink href="/shop" variant="quiet" className="btn-sketch btn-lg">
+                Shop the collection
+              </ButtonLink>
+            </div>
+          </div>
+
+          {/* ── the little window — fills whatever the fold has left ── */}
+          <div
+            className="hero-window animate-fade-up relative isolate h-full w-full lg:mx-auto lg:aspect-[5/6] lg:h-auto lg:max-w-[calc((100svh-14rem)*5/6)]"
+            style={{ animationDelay: "120ms" }}
+          >
+            <HeroWindow />
+            {/* the pencil under-drawing, still showing under the finished thing */}
+            <div aria-hidden className="arch absolute inset-0 rotate-[3.5deg] border-2 border-dashed border-taupe-300" />
+            <div className="arch absolute inset-0 rotate-[-1.5deg] border-[1.5px] border-taupe-300 bg-cream-50 p-2.5 shadow-[0_26px_36px_-18px_rgba(94,73,52,0.42)]">
+              <div className="arch relative h-full w-full overflow-hidden">
+                <Image
+                  src="/marketing/shelf-mains/03.webp"
+                  alt="The Choco Brown Classic bookshelf styled with a LITERATURE topper, tulips and candlelight, beside a full-size novel"
+                  fill
+                  preload
+                  sizes="(min-width:1024px) 44vw, 90vw"
+                  className="object-cover object-[50%_32%] lg:object-[56%_50%]"
+                />
+              </div>
+            </div>
+            <figure className="hero-polaroid absolute -bottom-2 -left-1 m-0 w-[7.4rem] -rotate-6 sm:w-[8.6rem] lg:-bottom-9 lg:-left-11 lg:w-[9.4rem]">
+              <div className="clay-sm relative bg-cream-50 p-1.5 pb-0 shadow-[0_16px_22px_-10px_rgba(94,73,52,0.45)]">
+                <span
+                  aria-hidden
+                  className="absolute -top-2.5 left-1/2 h-5 w-14 -translate-x-1/2 -rotate-6 rounded-[2px] bg-blush-200/85 shadow-[inset_0_0_0_1px_rgba(214,138,120,0.35)]"
+                />
+                <Image
+                  src="/marketing/mini-books/04.webp"
+                  alt="A hand holding a stack of six miniature novels, no longer than a thumb"
+                  width={480}
+                  height={480}
+                  sizes="160px"
+                  className="aspect-square w-full rounded-[0.7rem] object-cover"
+                />
+                <figcaption className="story-line py-1.5 text-center text-[0.68rem] leading-tight text-ink-600">
+                  actual size
+                </figcaption>
+              </div>
+            </figure>
+          </div>
+          </div>
+
+          {/* the drawn scroll cue: the fold's one pointer at the rest of the shop */}
+          <div className="hero-cue soft-in flex flex-col items-center gap-0.5 pb-[5.5rem] pt-1.5 lg:pb-4 lg:pt-3" style={{ animationDelay: "1200ms" }}>
+            <span className="story-line text-[0.78rem] text-ink-600">the shop, just below</span>
+            <IconChevronDown className="cue-bob h-4 w-4 text-sage-700" />
           </div>
         </div>
       </Section>
       <ScallopBand from="paper" to="cream" />
 
       {/* ─── The maker's note: the hero story, pinned just under the fold (mobile) ─── */}
-      <Section className="pt-8">
+      <Section className="pt-8 lg:hidden">
         <div className="stitch relative mx-auto max-w-md rotate-[-0.6deg] bg-cream-50 px-6 pb-7 pt-8 text-center">
           <span
             aria-hidden
