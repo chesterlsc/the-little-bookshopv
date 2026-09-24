@@ -173,7 +173,7 @@ export function buildSnapshot(
   });
   const subtotal = cartSubtotal(cart);
   const shipping = shippingFor(subtotal);
-  const discount = discountFor(discountCode, subtotal);
+  const discount = discountFor(discountCode, cart);
   return {
     issues: [],
     snapshot: {

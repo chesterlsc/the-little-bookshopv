@@ -170,7 +170,7 @@ export function PayScreen({
               </div>
               {snap.discount > 0 && (
                 <div className="flex justify-between gap-4 text-sage-700">
-                  <dt>Welcome discount{snap.discountCode ? ` (${snap.discountCode})` : ""}</dt>
+                  <dt>Discount{snap.discountCode ? ` (${snap.discountCode})` : ""}</dt>
                   <dd className="font-bold">−{formatMoney(snap.discount)}</dd>
                 </div>
               )}

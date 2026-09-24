@@ -10,7 +10,7 @@ import { Button, ButtonLink, Eyebrow, Field, inputClass, Section } from "@/compo
 import { FREE_SHIPPING_MINIMUM, cartCount, cartSubtotal, describeLine, shippingFor, validateCart } from "@/lib/cart";
 import { EMPTY_CUSTOMER, validateCustomer, type CustomerInfo, type FieldErrors } from "@/lib/checkout";
 import { formatMoney } from "@/lib/money";
-import { WELCOME_PERCENT, discountFor, isValidCode, normalizeCode } from "@/lib/discount";
+import { WELCOME_CODE, codeLabel, discountFor, isValidCode, normalizeCode } from "@/lib/discount";
 import { joinWelcome, readWelcome } from "@/lib/welcome";
 import { IconCheck } from "@/components/icons";
 
@@ -85,7 +85,7 @@ export default function CheckoutPage() {
       setAppliedCode(code);
       setCodeMessage(null);
       // They have the code, however they got it; the popup need not offer it again.
-      joinWelcome(code);
+      if (code === WELCOME_CODE) joinWelcome(code);
     } else {
       setAppliedCode("");
       setCodeMessage("That code isn't one of ours.");
@@ -93,7 +93,7 @@ export default function CheckoutPage() {
   };
 
   const subtotal = cartSubtotal(cart);
-  const discount = discountFor(appliedCode, subtotal);
+  const discount = discountFor(appliedCode, cart);
   const shipping = shippingFor(subtotal);
   const localIssues = ready ? validateCart(cart) : [];
 
@@ -288,7 +288,12 @@ export default function CheckoutPage() {
                 </Button>
               </div>
               <p id="discount-note" className={`mt-1 text-xs ${codeMessage ? "font-bold text-rose-700" : "text-ink-600"}`} role={codeMessage ? "alert" : undefined}>
-                {codeMessage ?? (appliedCode ? `${WELCOME_PERCENT}% off applied.` : "Got a welcome code? Pop it in here.")}
+                {codeMessage ??
+                  (!appliedCode
+                    ? "Got a code? Pop it in here."
+                    : discount > 0
+                      ? codeLabel(appliedCode)
+                      : "That code is for mini book sets. Add a set to use it.")}
               </p>
             </div>
             <dl className="mt-3 space-y-2 font-sans text-[0.95rem]">
@@ -298,7 +303,7 @@ export default function CheckoutPage() {
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sage-700">
-                  <dt>Welcome discount ({appliedCode})</dt>
+                  <dt>Discount ({appliedCode})</dt>
                   <dd className="font-bold">−{formatMoney(discount)}</dd>
                 </div>
               )}

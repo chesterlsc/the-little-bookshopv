@@ -202,6 +202,12 @@ check("welcome code: 5% off, normalized, shipping untouched",
   && disc.pay?.total === disc.pay.subtotal - disc.pay.discount + disc.pay.shipping);
 const fake = await (await post({ cart, customer, discountCode: "HACK99" })).json();
 check("made-up code buys nothing", fake.pay?.discount === 0 && !fake.pay?.discountCode);
+const setOnly = await (await post({ customer, discountCode: "bookset10", cart: { lines: [
+  { type: "product", key: "b1", slug: "mini-fourth-wing-set", variantId: "front-back-spine", qty: 1 },
+  { type: "product", key: "b2", slug: "mini-plant", variantId: "white", qty: 1 },
+] } })).json();
+check("book set code: 10% off the set only, not the plant",
+  setOnly.pay?.discountCode === "BOOKSET10" && setOnly.pay?.discount === 3990);
 
 // own throttle bucket, so a developer's earlier signups cannot fail this run
 let subs = 0;
