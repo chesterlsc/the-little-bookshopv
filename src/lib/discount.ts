@@ -13,15 +13,16 @@ import type { Cents } from "./money";
  *
  * Shipping is worked out on the subtotal before the discount, so a code never
  * costs a customer the free-shipping threshold they had already reached.
+ *
+ * There is no welcome code: signups join the mailing list, and a code reaches
+ * them by email only when the shop is running one. WELCOME5 was retired on
+ * 2026-09-24 and now reads as any unknown code.
  */
-export const WELCOME_CODE = "WELCOME5";
-export const WELCOME_PERCENT = 5;
 
 /** A standalone mini book set, named or custom. A bundle's set is priced into the bundle. */
 const isBookSet = (line: CartLine) => line.type === "product" && Boolean(getProduct(line.slug)?.setOfSix);
 
 const CODES: Record<string, { percent: number; covers: (line: CartLine) => boolean; label: string }> = {
-  [WELCOME_CODE]: { percent: WELCOME_PERCENT, covers: () => true, label: `${WELCOME_PERCENT}% off applied.` },
   BOOKSET10: { percent: 10, covers: isBookSet, label: "10% off your mini book sets applied." },
 };
 

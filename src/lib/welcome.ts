@@ -13,8 +13,6 @@ const COOKIES_KEY = "tlb-cookies-v1";
 
 export interface WelcomeState {
   status: "dismissed" | "joined";
-  /** the discount code, kept so checkout can fill it in for them */
-  code?: string;
   at: string;
 }
 
@@ -44,8 +42,8 @@ export function dismissWelcome(): void {
   write(WELCOME_KEY, { status: "dismissed", at: new Date().toISOString() } satisfies WelcomeState);
 }
 
-export function joinWelcome(code: string): void {
-  write(WELCOME_KEY, { status: "joined", code, at: new Date().toISOString() } satisfies WelcomeState);
+export function joinWelcome(): void {
+  write(WELCOME_KEY, { status: "joined", at: new Date().toISOString() } satisfies WelcomeState);
 }
 
 export function cookiesAccepted(): boolean {

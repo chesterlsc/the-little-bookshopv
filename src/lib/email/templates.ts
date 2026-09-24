@@ -180,7 +180,8 @@ export function subscriberDigestEmail(
   const tally = new Map<string, number>();
   for (const s of subs) tally.set(label(s.source), (tally.get(label(s.source)) ?? 0) + 1);
   const answers = [...tally].sort((a, b) => b[1] - a[1]).map(([name, n]) => `${name} ${n}`).join(" · ");
-  const codes = [...new Set(subs.map((s) => s.code))].join(", ");
+  // signups since WELCOME5 was retired store "" — only list codes someone was actually shown
+  const codes = [...new Set(subs.map((s) => s.code).filter(Boolean))].join(", ");
   const cell = "padding:5px 8px;border-top:1px solid #e2d5bf;font-size:12px;vertical-align:top;";
   return {
     to,
@@ -190,7 +191,7 @@ export function subscriberDigestEmail(
       `<table style="width:100%;">
         ${row("Joined", `${esc(when(subs[0].created_at))} to ${esc(when(subs[subs.length - 1].created_at))}`)}
         ${row("Where did you find us?", esc(answers))}
-        ${row("Code shown", esc(codes))}
+        ${codes ? row("Code shown", esc(codes)) : ""}
       </table>
       <table style="width:100%;border-collapse:collapse;margin-top:14px;">
         <tr style="text-align:left;font-size:11px;color:#93826d;">

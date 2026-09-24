@@ -2,7 +2,6 @@ import { after, NextResponse } from "next/server";
 import { getEmailProvider } from "@/lib/email";
 import { SUBSCRIBE_SOURCES, subscriberDigestEmail, type SubscribeSource } from "@/lib/email/templates";
 import { ordersAddress } from "@/lib/email/types";
-import { WELCOME_CODE } from "@/lib/discount";
 import { addSubscriber, claimDigest, releaseDigest } from "@/lib/subscribers";
 
 export const runtime = "nodejs";
@@ -54,8 +53,9 @@ function throttled(ip: string): boolean {
 
 /**
  * POST /api/subscribe
- * The welcome popup: an email address and where they found us, in exchange
- * for the welcome code, which the popup shows on screen.
+ * The welcome popup: an email address and where they found us. There is no
+ * code in exchange; the list is how the shop reaches people when it does run
+ * a discount (and stores "" in the old code column for new signups).
  *
  * The subscriber is never emailed, and the shop gets one email per 25 signups.
  * The subscribers table is the mailing list (`npm run shop subscribers`), and
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     website?: string;
   } | null;
 
-  if (body?.website) return NextResponse.json({ ok: true, code: WELCOME_CODE }); // quiet bot trap
+  if (body?.website) return NextResponse.json({ ok: true }); // quiet bot trap
 
   const email = (body?.email ?? "").trim().toLowerCase().slice(0, 200);
   const source = body?.source as SubscribeSource | undefined;
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
-  // The answer is part of the price of the code, so the API cannot skip it either.
+  // The popup asks it of everyone, so the API cannot skip it either.
   if (!source || !(SUBSCRIBE_SOURCES as readonly string[]).includes(source)) {
     return NextResponse.json(
       { error: "source", message: "Tell us where you found us." },
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await addSubscriber(email, source, WELCOME_CODE);
+    await addSubscriber(email, source, "");
   } catch (err) {
     // The table is the only record, so say so: the popup asks them to try again.
     console.error("[subscribe] could not save to the list:", err);
@@ -115,5 +115,5 @@ export async function POST(request: Request) {
 
   // after the response, so the signup that completes a batch never waits on Resend
   after(sendDigest);
-  return NextResponse.json({ ok: true, code: WELCOME_CODE });
+  return NextResponse.json({ ok: true });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
@@ -10,8 +10,7 @@ import { Button, ButtonLink, Eyebrow, Field, inputClass, Section } from "@/compo
 import { FREE_SHIPPING_MINIMUM, cartCount, cartSubtotal, describeLine, shippingFor, validateCart } from "@/lib/cart";
 import { EMPTY_CUSTOMER, validateCustomer, type CustomerInfo, type FieldErrors } from "@/lib/checkout";
 import { formatMoney } from "@/lib/money";
-import { WELCOME_CODE, codeLabel, discountFor, isValidCode, normalizeCode } from "@/lib/discount";
-import { joinWelcome, readWelcome } from "@/lib/welcome";
+import { codeLabel, discountFor, isValidCode, normalizeCode } from "@/lib/discount";
 import { IconCheck } from "@/components/icons";
 
 const FIELDS: {
@@ -64,16 +63,6 @@ export default function CheckoutPage() {
   const [appliedCode, setAppliedCode] = useState("");
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
 
-  // Someone who joined through the welcome popup should not have to retype
-  // their code; it is filled in and applied for them.
-  useEffect(() => {
-    const w = readWelcome();
-    if (w?.status === "joined" && w.code && isValidCode(w.code)) {
-      setCodeInput(w.code);
-      setAppliedCode(normalizeCode(w.code));
-    }
-  }, []);
-
   const applyCode = () => {
     const code = normalizeCode(codeInput);
     if (!code) {
@@ -84,8 +73,6 @@ export default function CheckoutPage() {
     if (isValidCode(code)) {
       setAppliedCode(code);
       setCodeMessage(null);
-      // They have the code, however they got it; the popup need not offer it again.
-      if (code === WELCOME_CODE) joinWelcome(code);
     } else {
       setAppliedCode("");
       setCodeMessage("That code isn't one of ours.");
@@ -279,7 +266,7 @@ export default function CheckoutPage() {
                   autoComplete="off"
                   autoCapitalize="characters"
                   spellCheck={false}
-                  placeholder="WELCOME5"
+                  placeholder="Discount code"
                   aria-describedby="discount-note"
                   className={`${inputClass} uppercase ${codeMessage ? "!border-rose-500" : ""}`}
                 />

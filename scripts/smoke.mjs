@@ -195,26 +195,25 @@ check("letters keep word and color; an old plant color id is White",
 const oldLetters = await post({ cart: { lines: [{ type: "product", key: "o1", slug: "mini-shelf-letters", variantId: "faves", qty: 1 }] }, customer });
 check("letters saved before colors must be chosen again", oldLetters.status === 422);
 
-/* ── welcome discount ───────────────────────────────────────────────────── */
-const disc = await (await post({ cart, customer, discountCode: " welcome 5 " })).json();
-check("welcome code: 5% off, normalized, shipping untouched",
-  disc.pay?.discountCode === "WELCOME5" && disc.pay?.discount === Math.floor(disc.pay.subtotal * 0.05)
-  && disc.pay?.total === disc.pay.subtotal - disc.pay.discount + disc.pay.shipping);
+/* ── discount codes ─────────────────────────────────────────────────────── */
+const retired = await (await post({ cart, customer, discountCode: "WELCOME5" })).json();
+check("the retired welcome code buys nothing", retired.pay?.discount === 0 && !retired.pay?.discountCode);
 const fake = await (await post({ cart, customer, discountCode: "HACK99" })).json();
 check("made-up code buys nothing", fake.pay?.discount === 0 && !fake.pay?.discountCode);
 const setOnly = await (await post({ customer, discountCode: "bookset10", cart: { lines: [
   { type: "product", key: "b1", slug: "mini-fourth-wing-set", variantId: "front-back-spine", qty: 1 },
   { type: "product", key: "b2", slug: "mini-plant", variantId: "white", qty: 1 },
 ] } })).json();
-check("book set code: 10% off the set only, not the plant",
-  setOnly.pay?.discountCode === "BOOKSET10" && setOnly.pay?.discount === 3990);
+check("book set code: 10% off the set only, normalized, shipping untouched",
+  setOnly.pay?.discountCode === "BOOKSET10" && setOnly.pay?.discount === 3990
+  && setOnly.pay?.total === setOnly.pay.subtotal - setOnly.pay.discount + setOnly.pay.shipping);
 
 // own throttle bucket, so a developer's earlier signups cannot fail this run
 let subs = 0;
 const sub = (payload) => fetch(`${BASE}/api/subscribe`, { method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": `smoke-${Date.now()}-${subs++}` }, body: JSON.stringify(payload) });
 const subEmail = `smoke-${Date.now()}@example.com`;
 const joined = await (await sub({ email: subEmail, source: "instagram" })).json();
-check("signup returns the welcome code", joined.ok === true && joined.code === "WELCOME5");
+check("signup is saved and hands out no code", joined.ok === true && !("code" in joined));
 // the dev mailer names each file after its recipients
 check("the subscriber is never emailed, so orders keep the mail quota",
   !fs.existsSync("var/outbox") || !fs.readdirSync("var/outbox").some((f) => f.includes(subEmail)));
@@ -258,14 +257,15 @@ check("old payment gateway routes are gone", gone.status === 404);
   await pp.locator('[role="dialog"] input[type="email"]').fill(`smoke-popup-${Date.now()}@example.com`);
   await pp.locator('[role="dialog"] button[type="submit"]').click();
   await pp.waitForTimeout(300);
-  check("no code without the survey answer", /Pick one/.test(await dialog.textContent()) && !/There it is/.test(await dialog.textContent()));
+  check("no signup without the survey answer", /Pick one/.test(await dialog.textContent()) && !/on the list/.test(await dialog.textContent()));
   await pp.locator('[role="dialog"] label:has-text("Instagram")').click();
   await pp.locator('[role="dialog"] button[type="submit"]').click();
   await pp.waitForTimeout(1800);
   const revealed = await dialog.textContent();
-  check("popup reveals the code after signup", /WELCOME5/.test(revealed) && /There it is/.test(revealed));
+  check("popup confirms the signup, promises email only for a discount, shows no code",
+    /on the list/.test(revealed) && /When we run a discount/.test(revealed) && !/WELCOME/.test(revealed));
   const remembered = await pp.evaluate(() => JSON.parse(localStorage.getItem("tlb-welcome-v1") || "null"));
-  check("popup remembers the signup with its code", remembered?.status === "joined" && remembered?.code === "WELCOME5");
+  check("popup remembers the signup", remembered?.status === "joined" && !remembered?.code);
   await pp.keyboard.press("Escape");
   await pp.waitForTimeout(400);
   check("Escape closes the popup", (await dialog.count()) === 0);

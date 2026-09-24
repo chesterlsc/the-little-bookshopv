@@ -3,27 +3,29 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { usePathname } from "next/navigation";
 import { useCart } from "./cart-context";
-import { CopyButton } from "./copy-button";
 import { IconCheck, IconX } from "./icons";
 import { FolkFlower, Leaf, MiniShelf, Sparkle } from "./illustrations";
 import { SPLASH_MS } from "./splash-screen";
 import { Button, ButtonLink, inputClass } from "./ui";
-import { WELCOME_CODE, WELCOME_PERCENT } from "@/lib/discount";
 import { dismissWelcome, joinWelcome, readWelcome } from "@/lib/welcome";
 
 /**
- * The welcome offer: a little shelf with five tiny books and one empty slot.
- * Your email is the sixth book. Type it, tap once, and the last book slides
- * onto the shelf with the code on its cover.
+ * The mailing-list invitation: a little shelf with five tiny books and one
+ * empty slot. Your email is the sixth book. Type it, tap once, and the last
+ * book slides onto the shelf.
+ *
+ * There is no code in exchange. Signing up is a choice, and the promise is
+ * only this: when the shop runs a discount, the code comes by email. Nothing
+ * is sent on signup (Resend is kept for orders).
  *
  * Shows once per browser, after the entry splash has finished, and never over
  * checkout or an order page. Declining is a real choice with a real label.
- * Nothing is emailed: once the signup is saved the code shows here, and
- * checkout fills it in on this device. A save that fails asks to try again.
+ * A save that fails asks to try again.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const FIVE = ["5%", "off", "your", "first", "order"];
+const FIVE = ["Six", "tiny", "books,", "one", "is"];
+const SIXTH = "YOU";
 const SOURCES = [
   ["instagram", "Instagram"],
   ["facebook", "Facebook"],
@@ -93,8 +95,8 @@ export function WelcomePopup() {
     window.setTimeout(finish, 260);
   };
 
-  // Declining before signup remembers the "no"; after the reveal the code is
-  // already theirs, so closing must not overwrite that with a dismissal.
+  // Declining before signup remembers the "no"; after the reveal they have
+  // joined, so closing must not overwrite that with a dismissal.
   const decline = () => {
     if (stage === "form") dismissWelcome();
     close();
@@ -167,7 +169,7 @@ export function WelcomePopup() {
     } catch {
       return fail();
     }
-    joinWelcome(WELCOME_CODE);
+    joinWelcome();
     setBusy(false);
     setStage("reveal");
   };
@@ -260,12 +262,12 @@ export function WelcomePopup() {
               <MiniShelf
                 size="miniature"
                 shape="scalloped"
-                titles={revealed ? [...FIVE, WELCOME_CODE] : FIVE}
+                titles={revealed ? [...FIVE, SIXTH] : FIVE}
                 animate={revealed}
                 animateFrom={5}
                 label={
                   revealed
-                    ? `A little shelf with six tiny books, the last one reading ${WELCOME_CODE}`
+                    ? "A little shelf with six tiny books, now full"
                     : "A little shelf with five tiny books and one empty slot"
                 }
                 className="w-full"
@@ -288,7 +290,7 @@ export function WelcomePopup() {
               <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 shrink-0" aria-hidden>
                 <FolkFlower x={7} y={7} r={4.2} />
               </svg>
-              {revealed ? "With love (and a code)" : "One book short"}
+              {revealed ? "You\u2019re on the list" : "One book short"}
             </p>
             <h2
               id={h2Id}
@@ -297,29 +299,20 @@ export function WelcomePopup() {
               className="mt-1 text-balance font-display text-[1.3rem] font-bold leading-tight text-ink-900 outline-none sm:text-[1.5rem]"
             >
               {revealed
-                ? `There it is. ${WELCOME_PERCENT}% off, just for you.`
-                : `Your shelf is missing one little book. Add it for ${WELCOME_PERCENT}% off.`}
+                ? "Your shelf is full. Thank you."
+                : "Your shelf is missing one little book. Want to be it?"}
             </h2>
           </div>
         </div>
 
         {revealed ? (
           <>
-            <p className="mx-auto mt-2 max-w-[34ch] font-sans text-[0.95rem] leading-relaxed text-ink-600">
-              Use {WELCOME_CODE} at checkout. We will fill it in for you on this device.
-            </p>
-            <div
-              className="stitch animate-pop mt-4 flex items-center justify-between gap-3 bg-cream-50 px-4 py-3"
-              style={{ animationDelay: "450ms" }}
+            <p
+              role="status"
+              className="mx-auto mt-2 max-w-[34ch] font-sans text-[0.95rem] leading-relaxed text-ink-600"
             >
-              <span aria-hidden className="select-all font-display text-2xl font-bold tracking-[0.18em] text-ink-900">
-                {WELCOME_CODE}
-              </span>
-              <span className="sr-only" role="status">
-                Your discount code is {WELCOME_CODE}
-              </span>
-              <CopyButton value={WELCOME_CODE} label="discount code" variant="blush" />
-            </div>
+              No code today. When we run a discount, it comes straight to your inbox. Nothing else.
+            </p>
             <div className="animate-fade-up" style={{ animationDelay: "600ms" }}>
               <ButtonLink href="/build" className="mt-4 w-full" onClick={close}>
                 Build your little shelf
@@ -332,7 +325,7 @@ export function WelcomePopup() {
         ) : (
           <>
             <p className="mx-auto mt-2 max-w-[34ch] font-sans text-[0.95rem] leading-relaxed text-ink-600">
-              Leave your email and we will slide it in. The code lands right here.
+              Leave your email if you like. We only write when we have a discount to share.
             </p>
             <form className="mt-4 text-left" noValidate onSubmit={submit}>
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
@@ -397,10 +390,10 @@ export function WelcomePopup() {
                 onClick={decline}
                 className="btn-link btn-link-rose mx-auto mt-3 block py-2 text-sm"
               >
-                No thanks, full price is fine
+                No thanks
               </button>
               <p className="mt-2 text-center text-xs text-ink-400">
-                We may email the occasional new tiny thing. Message us any time to be removed.
+                Only discount codes, only when we have one. Message us any time to be removed.
               </p>
             </form>
           </>
